@@ -34,7 +34,6 @@ export default function MovieDetailsScreen() {
   const status = useSelector(selectEventDetailsStatus);
   const error = useSelector(selectEventDetailsError);
 
-  console.log(movie);
   
 
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -50,7 +49,7 @@ export default function MovieDetailsScreen() {
     return () => dispatch(clearEventDetails());
   }, [dispatch, eventId]);
 
-  // ✅ getEventDetails возвращает: title, poster, persons[], session_dates[]
+  //  getEventDetails возвращает: title, poster, persons[], session_dates[]
   const posterSrc = (movie?.poster || "").trim() || "/placeholder.svg";
   const title = movie?.title || "—";
 
@@ -75,13 +74,13 @@ export default function MovieDetailsScreen() {
           .filter(Boolean)
       : [];
 
-  // ✅ persons[] — актёры, режиссёры с фото
+  //  persons[] — актёры, режиссёры с фото
   const persons = Array.isArray(movie?.persons) ? movie.persons : [];
   const directors = persons.filter((p) => p.personType === "director");
   const actors = persons.filter((p) => p.personType === "actor");
   const crew = [...directors, ...actors];
 
-  // ✅ session_dates[] — сеансы по датам и локациям
+  //  session_dates[] — сеансы по датам и локациям
   const sessionDates = Array.isArray(movie?.session_dates)
     ? movie.session_dates
     : [];
@@ -500,10 +499,10 @@ export default function MovieDetailsScreen() {
           color="primary"
           onClick={() => setSheetOpen(true)}
           sx={{
-            fontWeight: 800,
+            fontWeight: 550,
             fontSize: 16,
-            py: 1.6,
-            borderRadius: 3,
+            py:1.6,
+            borderRadius: 6,
             textTransform: "none",
           }}
         >

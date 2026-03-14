@@ -1,5 +1,4 @@
-// HallPage.jsx
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -11,26 +10,26 @@ import {
 } from "../../features/seats/seatsSlice";
 import { IconButton } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-// ticket sheet comes from the SeatMap module (filters by seat type)
 import { TicketBottomSheet } from "../SeatMap/SeatMap";
+import HallCanvas from "../../components/HallCanvas/HallCanvas";
 
 const BRAND = {
-  red: "#E31E24",
-  redDark: "#c01a1f",
-  white: "#ffffff",
-  bg: "#f5f5f5",
-  gray: "#c5c6c6",
+  red:      "#E31E24",
+  redDark:  "#c01a1f",
+  white:    "#ffffff",
+  bg:       "#f5f5f5",
+  gray:     "#c5c6c6",
   textMain: "#000000",
-  textSub: "#6b7280",
-  font: "inherit",
+  textSub:  "#6b7280",
+  font:     "inherit",
 };
 
 const SEAT_COLORS = {
   STANDARD: "#f59e0b",
-  COMFORT: "#3b82f6",
-  VIP: "#a855f7",
-  ECONOM: "#10b981",
-  DEFAULT: "#f59e0b",
+  COMFORT:  "#3b82f6",
+  VIP:      "#a855f7",
+  ECONOM:   "#10b981",
+  DEFAULT:  "#f59e0b",
 };
 
 function getSeatColor(seatType) {
@@ -43,12 +42,12 @@ const MAX_TICKETS = 10;
 function SeatIcon({ color, size = 16 }) {
   return (
     <svg width={size} height={size * 0.8} viewBox="0 0 26 23" fill="none">
-      <rect x="2" y="0" width="22" height="8" rx="3" fill={color} />
-      <rect x="0" y="8" width="26" height="11" rx="3" fill={color} />
-      <rect x="0" y="10" width="4" height="10" rx="2" fill={color} opacity="0.7" />
-      <rect x="22" y="10" width="4" height="10" rx="2" fill={color} opacity="0.7" />
-      <rect x="4" y="18" width="4" height="5" rx="1.5" fill={color} opacity="0.5" />
-      <rect x="18" y="18" width="4" height="5" rx="1.5" fill={color} opacity="0.5" />
+      <rect x="2"  y="0"  width="22" height="8"  rx="3" fill={color} />
+      <rect x="0"  y="8"  width="26" height="11" rx="3" fill={color} />
+      <rect x="0"  y="10" width="4"  height="10" rx="2" fill={color} opacity="0.7" />
+      <rect x="22" y="10" width="4"  height="10" rx="2" fill={color} opacity="0.7" />
+      <rect x="4"  y="18" width="4"  height="5"  rx="1.5" fill={color} opacity="0.5" />
+      <rect x="18" y="18" width="4"  height="5"  rx="1.5" fill={color} opacity="0.5" />
     </svg>
   );
 }
@@ -68,16 +67,14 @@ function Skeleton() {
   );
 }
 
-// Легенда — дедупликация по seatType чтобы избежать дублирующихся key
 function Legend({ priceData }) {
-  const seen = new Set();
+  const seen   = new Set();
   const unique = priceData.filter((p) => {
     const k = p.seatType?.toUpperCase();
     if (seen.has(k)) return false;
     seen.add(k);
     return true;
   });
-
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "8px 16px 4px", flexWrap: "wrap" }}>
       {unique.map((p) => (
@@ -98,72 +95,6 @@ function Legend({ priceData }) {
   );
 }
 
-function Seat({ seat, isSelected, onToggle, onDeselect, priceData, limitReached, scale }) {
-  const booked   = seat.bookedSeats === "1";
-  const disabled = booked || (!isSelected && limitReached);
-  const color    = booked ? "#d1d5db" : isSelected ? BRAND.red : getSeatColor(seat.seatType);
-  const size     = Math.max(10, 22 * scale);
-
-  return (
-    <div
-      onClick={() => { if (disabled) return; isSelected ? onDeselect(seat) : onToggle(seat); }}
-      title={booked ? "Занято" : disabled ? `Максимум ${MAX_TICKETS} билетов` : `Ряд ${seat.rowNum}, Место ${seat.place}`}
-      style={{ cursor: disabled ? "default" : "pointer", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", opacity: disabled && !booked ? 0.35 : 1, transition: "opacity 0.15s" }}
-    >
-      {booked ? (
-        <div style={{ width: size, height: size * 0.8, background: "#e5e7eb", borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.5, color: "#9ca3af", fontWeight: 700 }}>✕</div>
-      ) : (
-        <div style={{ transform: isSelected ? "scale(1.25)" : "scale(1)", transition: "transform 0.1s" }}>
-          <SeatIcon color={color} size={size} />
-        </div>
-      )}
-      {isSelected && !booked && (
-        <div style={{ position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", background: BRAND.red, color: BRAND.white, fontSize: 8, fontWeight: 700, borderRadius: 3, padding: "1px 3px", whiteSpace: "nowrap", zIndex: 10 }}>
-          {seat.place}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function HallCanvas({ seats, selectedSeats, onToggle, onDeselect, priceData, limitReached, mapWidth, mapHeight }) {
-  const containerRef = useRef(null);
-  const [containerW, setContainerW] = useState(0);
-
-  const validSeats = seats.filter((s) => s.objectType === "seat" && s.left && s.top);
-  const allX = validSeats.map((s) => Number(s.left));
-  const allY = validSeats.map((s) => Number(s.top));
-  const minX = validSeats.length ? Math.min(...allX) : 0;
-  const maxX = validSeats.length ? Math.max(...allX) : Number(mapWidth);
-  const minY = validSeats.length ? Math.min(...allY) : 0;
-  const maxY = validSeats.length ? Math.max(...allY) : Number(mapHeight);
-  const realWidth  = maxX - minX + 60;
-  const realHeight = maxY - minY + 60;
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver(([e]) => setContainerW(e.contentRect.width));
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  const scale       = containerW ? containerW / realWidth : 1;
-  const canvasH     = realHeight * scale;
-  const offsetX     = (containerW - realWidth * scale) / 2;
-
-  return (
-    <div ref={containerRef} style={{ width: "100%", overflowX: "hidden", overflowY: "auto" }}>
-      <div style={{ position: "relative", width: "100%", height: canvasH }}>
-        {validSeats.map((seat) => (
-          <div key={seat.seatId} style={{ position: "absolute", left: offsetX + (Number(seat.left) - minX + 30) * scale, top: (Number(seat.top) - minY + 30) * scale, transform: "translate(-50%, -50%)", zIndex: 1 }}>
-            <Seat seat={seat} priceData={priceData} limitReached={limitReached} isSelected={selectedSeats.some((s) => s.seatId === seat.seatId)} onToggle={onToggle} onDeselect={onDeselect} scale={scale} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function HallPage() {
   const { sessionId } = useParams();
   const navigate      = useNavigate();
@@ -178,7 +109,7 @@ export default function HallPage() {
   const [activeSessionId, setActiveSessionId] = useState(sessionId);
   const [selectedSeats, setSelectedSeats]     = useState([]);
   const [limitWarning, setLimitWarning]       = useState(false);
-  const [pendingSeat, setPendingSeat]         = useState(null); // место ожидающее выбора типа билета
+  const [pendingSeat, setPendingSeat]         = useState(null);
 
   useEffect(() => {
     if (!activeSessionId) return;
@@ -197,43 +128,52 @@ export default function HallPage() {
   const freeCount    = onlySeats.filter((s) => s.bookedSeats === "0").length;
   const limitReached = selectedSeats.length >= MAX_TICKETS;
 
-  const handleSeatClick = (seat) => {
+  const handleSeatClick = useCallback((seat) => {
     if (limitReached) {
       setLimitWarning(true);
       setTimeout(() => setLimitWarning(false), 2500);
       return;
     }
-    setPendingSeat(seat); // открываем bottomsheet
-  };
+    setPendingSeat(seat);
+  }, [limitReached]);
 
-  const handleDeselect = (seat) =>
-    setSelectedSeats((prev) => prev.filter((s) => s.seatId !== seat.seatId));
+  const handleDeselect = useCallback((seat) =>
+    setSelectedSeats((prev) => prev.filter((s) => s.seatId !== seat.seatId)), []);
 
   const handleTicketSelect = (seat, ticket) => {
-    const entry = { ...seat, ticketId: ticket.ticketId, ticketType: ticket.ticketType, ticketName: ticket.name, price: parseFloat(ticket.price) || 0 };
+    const entry = {
+      ...seat,
+      ticketId:   ticket.ticketId,
+      ticketType: ticket.ticketType,
+      ticketName: ticket.name,
+      price:      parseFloat(ticket.price) || 0,
+    };
     setSelectedSeats((prev) => {
       const exists = prev.find((s) => s.seatId === seat.seatId);
-      return exists ? prev.map((s) => s.seatId === seat.seatId ? entry : s) : [...prev, entry];
+      return exists
+        ? prev.map((s) => (s.seatId === seat.seatId ? entry : s))
+        : [...prev, entry];
     });
     setPendingSeat(null);
   };
 
   const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
 
-  const handleBuy = () => navigate("/checkout", {
-    state: {
-      seatTicketArr: selectedSeats.map((s) => ({ seatId: s.seatId, ticketId: s.ticketId })),
-      total,
-      sessionId: activeSessionId,
-    },
-  });
+  const handleBuy = () =>
+    navigate("/checkout", {
+      state: {
+        seatTicketArr: selectedSeats.map((s) => ({ seatId: s.seatId, ticketId: s.ticketId })),
+        total,
+        sessionId: activeSessionId,
+      },
+    });
 
   return (
     <div style={{ minHeight: "100vh", fontFamily: BRAND.font, maxWidth: 480, margin: "0 auto", position: "relative", paddingBottom: selectedSeats.length > 0 ? 120 : 20 }}>
       <style>{`
-        @keyframes slideUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
+        @keyframes slideUp    { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
         @keyframes fadeInDown { from{opacity:0;transform:translateX(-50%) translateY(-12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-        .buy-btn:hover { background: ${BRAND.redDark} !important; }
+        .buy-btn:hover   { background: ${BRAND.redDark} !important; }
         .retry-btn:hover { color: ${BRAND.redDark} !important; }
       `}</style>
 
@@ -257,8 +197,11 @@ export default function HallPage() {
             {sessions.map((s) => {
               const active = activeSessionId === s.sessionId;
               return (
-                <div key={s.sessionId} onClick={() => { setActiveSessionId(s.sessionId); setSelectedSeats([]); }}
-                  style={{ cursor: "pointer", background: active ? BRAND.red : BRAND.bg, border: `2px solid ${active ? BRAND.red : BRAND.gray}`, borderRadius: 10, padding: "8px 16px", textAlign: "center", minWidth: 76, transition: "background 0.15s" }}>
+                <div
+                  key={s.sessionId}
+                  onClick={() => { setActiveSessionId(s.sessionId); setSelectedSeats([]); }}
+                  style={{ cursor: "pointer", background: active ? BRAND.red : BRAND.bg, border: `2px solid ${active ? BRAND.red : BRAND.gray}`, borderRadius: 10, padding: "8px 16px", textAlign: "center", minWidth: 76, transition: "background 0.15s" }}
+                >
                   <div style={{ fontWeight: 800, fontSize: 18, color: active ? BRAND.white : BRAND.textMain }}>{s.sessionTime}</div>
                   <div style={{ fontSize: 11, color: active ? "rgba(255,255,255,0.85)" : BRAND.textSub }}>{s.mediaType}</div>
                   <div style={{ fontSize: 11, marginTop: 3, color: active ? "rgba(255,255,255,0.75)" : BRAND.gray }}>от {s.minPrice} {s.currencyCode}</div>
@@ -280,7 +223,13 @@ export default function HallPage() {
       {status === "failed" && (
         <div style={{ textAlign: "center", padding: 40 }}>
           <div style={{ color: BRAND.red, fontSize: 14, marginBottom: 12 }}>{error}</div>
-          <div className="retry-btn" onClick={() => dispatch(fetchSeats({ sessionId: activeSessionId, bookedSeats: -1 }))} style={{ color: BRAND.red, cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Повторить</div>
+          <div
+            className="retry-btn"
+            onClick={() => dispatch(fetchSeats({ sessionId: activeSessionId, bookedSeats: -1 }))}
+            style={{ color: BRAND.red, cursor: "pointer", fontSize: 13, fontWeight: 600 }}
+          >
+            Повторить
+          </div>
         </div>
       )}
 
@@ -289,17 +238,27 @@ export default function HallPage() {
           <Legend priceData={priceData} />
           <div style={{ textAlign: "center", color: BRAND.textSub, fontSize: 12, marginBottom: 8 }}>
             Осталось мест: {freeCount}
-            {limitReached && <span style={{ color: BRAND.red, fontWeight: 600, marginLeft: 8 }}>· Выбрано {MAX_TICKETS}/{MAX_TICKETS}</span>}
+            {limitReached && (
+              <span style={{ color: BRAND.red, fontWeight: 600, marginLeft: 8 }}>
+                · Выбрано {MAX_TICKETS}/{MAX_TICKETS}
+              </span>
+            )}
           </div>
           <div style={{ textAlign: "center", margin: "0 20px 8px" }}>
             <div style={{ height: 14, marginBottom: 3, background: `linear-gradient(180deg,${BRAND.gray} 0%,#000 100%)`, borderRadius: "50% 50% 0 0/100% 100% 0 0" }} />
             <div style={{ fontSize: 9, color: BRAND.textSub, letterSpacing: 4, fontWeight: 600 }}>ЭКРАН</div>
           </div>
-          <HallCanvas seats={seats} selectedSeats={selectedSeats} onToggle={handleSeatClick} onDeselect={handleDeselect} priceData={priceData} limitReached={limitReached} mapWidth={mapWidth} mapHeight={mapHeight} />
+          <HallCanvas
+            seats={seats}
+            selectedSeats={selectedSeats}
+            onToggle={handleSeatClick}
+            onDeselect={handleDeselect}
+            mapWidth={mapWidth}
+            mapHeight={mapHeight}
+          />
         </div>
       )}
 
-      {/* BottomSheet */}
       {pendingSeat && (
         <TicketBottomSheet
           seat={pendingSeat}
@@ -309,7 +268,6 @@ export default function HallPage() {
         />
       )}
 
-      {/* Панель покупки */}
       {selectedSeats.length > 0 && (
         <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, background: BRAND.white, borderTop: `3px solid ${BRAND.red}`, borderRadius: "16px 16px 0 0", padding: "12px 20px 24px", zIndex: 100, animation: "slideUp 0.2s ease" }}>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
@@ -325,7 +283,11 @@ export default function HallPage() {
               <div style={{ color: BRAND.textMain, fontWeight: 800, fontSize: 24 }}>{total.toFixed(2)} TJS</div>
               <div style={{ color: BRAND.textSub, fontSize: 13 }}>За {selectedSeats.length} {selectedSeats.length === 1 ? "билет" : "билетов"}</div>
             </div>
-            <button className="buy-btn" onClick={handleBuy} style={{ background: BRAND.red, color: BRAND.white, border: "none", borderRadius: 10, padding: "14px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", transition: "background 0.15s", boxShadow: "0 4px 12px rgba(227,30,36,0.35)" }}>
+            <button
+              className="buy-btn"
+              onClick={handleBuy}
+              style={{ background: BRAND.red, color: BRAND.white, border: "none", borderRadius: 10, padding: "14px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", transition: "background 0.15s", boxShadow: "0 4px 12px rgba(227,30,36,0.35)" }}
+            >
               Купить
             </button>
           </div>

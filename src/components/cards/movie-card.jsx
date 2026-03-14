@@ -88,9 +88,9 @@ export default function MovieCard({ movie, onShowSessions, onMovieClick }) {
               <Chip
                 label={movie.ageRating}
                 size="small"
-                color="primary"
+                // color="primary"
                 variant="outlined"
-                sx={{ fontWeight: 800, flexShrink: 0 }}
+                sx={{ fontWeight: 800, flexShrink: 0,color:"#fc9f2a", borderColor:"#fc9f2a" }}
               />
             ) : null}
           </Box>
@@ -116,7 +116,7 @@ export default function MovieCard({ movie, onShowSessions, onMovieClick }) {
           {genres.length > 0 ? (
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
               {genres.slice(0, 3).map((g) => (
-                <Chip key={g} label={g} size="small" variant="filled" />
+                <Chip key={g} label={g} size="small" variant="outlined" sx={{ borderColor: '#fc9f2a',color: '#fc9f2a' }} />
               ))}
             </Stack>
           ) : null}
@@ -128,7 +128,7 @@ export default function MovieCard({ movie, onShowSessions, onMovieClick }) {
         <Button
           fullWidth
           variant="contained"
-          sx={{ borderRadius: 2, textTransform: "none", fontWeight: 700, backgroundColor: "#E31E24" }}
+          sx={{ borderRadius: 4, textTransform: "none", fontWeight: 550, backgroundColor: "#E31E24" , fontSize: 15}}
         >
           <CalendarMonthIcon sx={{ mr: 1, fontSize: 16 }} />
           Посмотреть сеансы
