@@ -487,7 +487,7 @@ export default function MovieDetailsScreen() {
           bottom: 0,
           left: 0,
           right: 0,
-          px: 3,
+          px: 2,
           py: 1,
           background: "linear-gradient(to top, #fff 70%, transparent)",
           zIndex: 100,

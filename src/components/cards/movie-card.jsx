@@ -9,7 +9,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { Link } from "react-router-dom";
 
 export default function MovieCard({ movie, onShowSessions, onMovieClick }) {
@@ -19,21 +18,22 @@ export default function MovieCard({ movie, onShowSessions, onMovieClick }) {
     .filter(Boolean);
 
   return (
-    <Box
-      sx={{
-        borderRadius: 3,
-        overflow: "hidden",
-        bgcolor: "background.paper",
-        border: "1px solid",
-        borderColor: "divider",
-        p: 2,
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-      }}
-    >
-      {/* Постер + инфо */}
-      <Box sx={{ display: "flex", gap: 2 }}>
+    <Link to={`/event/${movie.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+      <Box
+        sx={{
+          borderRadius: 5,
+          overflow: "hidden",
+          bgcolor: "background.paper",
+          border: "1px solid",
+          borderColor: "divider",
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
+        {/* Постер + инфо */}
+        <Box sx={{ display: "flex", gap: 2 }}>
         {/* Poster */}
         <Box
           component="button"
@@ -123,18 +123,8 @@ export default function MovieCard({ movie, onShowSessions, onMovieClick }) {
         </Box>
       </Box>
 
-      {/* Кнопка */}
-      <Link to={`/event/${movie.id}`} style={{ textDecoration: "none" }}>
-        <Button
-          fullWidth
-          variant="contained"
-          sx={{ borderRadius: 4, textTransform: "none", fontWeight: 550, backgroundColor: "#E31E24" , fontSize: 15}}
-        >
-          <CalendarMonthIcon sx={{ mr: 1, fontSize: 16 }} />
-          Посмотреть сеансы
-        </Button>
-      </Link>
     </Box>
+  </Link>
   );
 }
 

@@ -8,7 +8,6 @@ import InputBase from "@mui/material/InputBase";
 import Typography from "@mui/material/Typography";
 
 import SearchIcon from "@mui/icons-material/Search";
-import HistoryIcon from "@mui/icons-material/History";
 import CloseIcon from "@mui/icons-material/Close";
 import LocalActivityIcon from "@mui/icons-material/LocalActivity";
 
