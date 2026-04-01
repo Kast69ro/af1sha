@@ -18,7 +18,10 @@ export default function MovieCard({ movie, onShowSessions, onMovieClick }) {
     .filter(Boolean);
 
   return (
-    <Link to={`/event/${movie.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+    <Link
+      to={`/event/${movie.id}`}
+      style={{ textDecoration: "none", color: "inherit" }}
+    >
       <Box
         sx={{
           borderRadius: 5,
@@ -34,97 +37,127 @@ export default function MovieCard({ movie, onShowSessions, onMovieClick }) {
       >
         {/* Постер + инфо */}
         <Box sx={{ display: "flex", gap: 2 }}>
-        {/* Poster */}
-        <Box
-          component="button"
-          type="button"
-          onClick={onMovieClick}
-          sx={{
-            flexShrink: 0,
-            width: 96,
-            aspectRatio: "2 / 3",
-            borderRadius: 2,
-            overflow: "hidden",
-            border: 0,
-            p: 0,
-            background: "transparent",
-            cursor: "pointer",
-          }}
-        >
-          <CardMedia
-            component="img"
-            src={movie?.poster || "/placeholder.svg"}
-            alt={movie?.title || "Movie poster"}
-            loading="lazy"
-            decoding="async"
-            sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        </Box>
+          {/* Poster */}
+          <Box
+            component="button"
+            type="button"
+            onClick={onMovieClick}
+            sx={{
+              flexShrink: 0,
+              width: 96,
+              aspectRatio: "2 / 3",
+              borderRadius: 2,
+              overflow: "hidden",
+              border: 0,
+              p: 0,
+              background: "transparent",
+              cursor: "pointer",
+            }}
+          >
+            <CardMedia
+              component="img"
+              src={movie?.poster || "/placeholder.svg"}
+              alt={movie?.title || "Movie poster"}
+              loading="lazy"
+              decoding="async"
+              sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </Box>
 
-        {/* Info */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
+          {/* Info */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box
-              component="button"
-              type="button"
-              onClick={onMovieClick}
-              sx={{ textAlign: "left", border: 0, p: 0, background: "transparent", cursor: "pointer", minWidth: 0 }}
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 1,
+              }}
             >
-              <Typography
-                variant="subtitle1"
+              <Box
+                component="button"
+                type="button"
+                onClick={onMovieClick}
                 sx={{
-                  fontWeight: 700,
+                  textAlign: "left",
+                  border: 0,
+                  p: 0,
+                  background: "transparent",
+                  cursor: "pointer",
+                  minWidth: 0,
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: 700,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {movie?.title}
+                </Typography>
+              </Box>
+
+              {movie?.ageRating ? (
+                <Chip
+                  label={movie.ageRating}
+                  size="small"
+                  // color="primary"
+                  variant="outlined"
+                  sx={{
+                    fontWeight: 800,
+                    flexShrink: 0,
+                    color: "#fc9f2a",
+                    borderColor: "#fc9f2a",
+                  }}
+                />
+              ) : null}
+            </Box>
+
+            {movie?.description ? (
+              <Typography
+                variant="body2"
+                sx={{
+                  mt: 1,
+                  color: "text.secondary",
+                  lineHeight: 1.45,
+                  textAlign: "left",
                   display: "-webkit-box",
-                  WebkitLineClamp: 2,
+                  WebkitLineClamp: 3,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
                 }}
               >
-                {movie?.title}
+                {movie.description}
               </Typography>
-            </Box>
+            ) : null}
 
-            {movie?.ageRating ? (
-              <Chip
-                label={movie.ageRating}
-                size="small"
-                // color="primary"
-                variant="outlined"
-                sx={{ fontWeight: 800, flexShrink: 0,color:"#fc9f2a", borderColor:"#fc9f2a" }}
-              />
+            {genres.length > 0 ? (
+              <Stack
+                direction="row"
+                spacing={1}
+                useFlexGap
+                flexWrap="wrap"
+                sx={{ mt: 1 }}
+              >
+                {genres.slice(0, 3).map((g) => (
+                  <Chip
+                    key={g}
+                    label={g}
+                    size="small"
+                    variant="outlined"
+                    sx={{ borderColor: "#fc9f2a", color: "#fc9f2a" }}
+                  />
+                ))}
+              </Stack>
             ) : null}
           </Box>
-
-          {movie?.description ? (
-            <Typography
-              variant="body2"
-              sx={{
-                mt: 1,
-                color: "text.secondary",
-                lineHeight: 1.45,
-                textAlign: "left",
-                display: "-webkit-box",
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {movie.description}
-            </Typography>
-          ) : null}
-
-          {genres.length > 0 ? (
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
-              {genres.slice(0, 3).map((g) => (
-                <Chip key={g} label={g} size="small" variant="outlined" sx={{ borderColor: '#fc9f2a',color: '#fc9f2a' }} />
-              ))}
-            </Stack>
-          ) : null}
         </Box>
       </Box>
-
-    </Box>
-  </Link>
+    </Link>
   );
 }
 

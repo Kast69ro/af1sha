@@ -34,8 +34,6 @@ export default function MovieDetailsScreen() {
   const status = useSelector(selectEventDetailsStatus);
   const error = useSelector(selectEventDetailsError);
 
-  
-
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState(
@@ -501,7 +499,7 @@ export default function MovieDetailsScreen() {
           sx={{
             fontWeight: 550,
             fontSize: 16,
-            py:1.6,
+            py: 1.6,
             borderRadius: 6,
             textTransform: "none",
           }}

@@ -19,19 +19,22 @@ import {
 } from "../../features/categories/categoriesSlice.js";
 import { fetchEvents } from "../../features/catalog/catalogSlice.js";
 
-const norm = (s) => String(s ?? "").toLowerCase().trim();
+const norm = (s) =>
+  String(s ?? "")
+    .toLowerCase()
+    .trim();
 
 export default function AppLayout() {
-  const dispatch  = useDispatch();
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const categories = useSelector(selectCategories);
-  const catStatus  = useSelector(selectCategoriesStatus);
+  const catStatus = useSelector(selectCategoriesStatus);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [searchOpen, setSearchOpen]             = useState(false);
-  const [searchValue, setSearchValue]           = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -39,27 +42,27 @@ export default function AppLayout() {
   }, [dispatch, catStatus]);
 
   useEffect(() => {
-  if (categories.length === 0) return;
+    if (categories.length === 0) return;
 
-  const match = location.pathname.match(/\/catalog\/(\w+)/);
-  const urlCategoryId = match?.[1];
+    const match = location.pathname.match(/\/catalog\/(\w+)/);
+    const urlCategoryId = match?.[1];
 
-  if (urlCategoryId) {
-    setSelectedCategory(String(urlCategoryId));
-    return;
-  }
+    if (urlCategoryId) {
+      setSelectedCategory(String(urlCategoryId));
+      return;
+    }
 
-  // ── редиректим ТОЛЬКО если мы на "/" ──
-  if (location.pathname !== "/") return;
+    // ── редиректим ТОЛЬКО если мы на "/" ──
+    if (location.pathname !== "/") return;
 
-  const kino = categories.find((c) => {
-    const n = norm(c?.label ?? c?.categoryName ?? "");
-    return n.includes("кино") || n.includes("film") || n.includes("movie");
-  });
-  const defaultId = String(kino?.id ?? categories[0]?.id);
-  setSelectedCategory(defaultId);
-  navigate(`/catalog/${defaultId}`, { replace: true });
-}, [categories, location.pathname]);
+    const kino = categories.find((c) => {
+      const n = norm(c?.label ?? c?.categoryName ?? "");
+      return n.includes("кино") || n.includes("film") || n.includes("movie");
+    });
+    const defaultId = String(kino?.id ?? categories[0]?.id);
+    setSelectedCategory(defaultId);
+    navigate(`/catalog/${defaultId}`, { replace: true });
+  }, [categories, location.pathname]);
 
   // Поиск с дебаунсом
   useEffect(() => {
@@ -89,38 +92,50 @@ export default function AppLayout() {
   const isLoading = catStatus === "loading" || catStatus === "idle";
 
   return (
-    <Box sx={{
-      minHeight: "100dvh",
-      bgcolor: "background.default",
-      maxWidth: 480,
-      mx: "auto",
-    }}>
-      {/* ── Шапка ── */}
-      <Box sx={{
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
+    <Box
+      sx={{
+        minHeight: "100dvh",
         bgcolor: "background.default",
-        borderBottom: "1px solid",
-        borderColor: "divider",
-      }}>
+        maxWidth: 480,
+        mx: "auto",
+      }}
+    >
+      {/* ── Шапка ── */}
+      <Box
+        sx={{
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          bgcolor: "background.default",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+        }}
+      >
         {/* Верхняя строка: заголовок / поиск */}
-        <Box sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          px: 1,
-          pt: 1,
-          minHeight: 48,
-        }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: 1,
+            pt: 1,
+            minHeight: 48,
+          }}
+        >
           {searchOpen ? (
             /* Строка поиска */
-            <Box sx={{
-              display: "flex", alignItems: "center",
-              flex: 1, gap: 1,
-              bgcolor: "#f3f4f6",
-              borderRadius: 3, px: 1.5, py: 0.5,
-            }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                flex: 1,
+                gap: 1,
+                bgcolor: "#f3f4f6",
+                borderRadius: 3,
+                px: 1.5,
+                py: 0.5,
+              }}
+            >
               <SearchIcon sx={{ color: "#9ca3af", fontSize: 20 }} />
               <InputBase
                 inputRef={searchRef}
@@ -154,9 +169,17 @@ export default function AppLayout() {
         {!searchOpen && (
           <Box sx={{ pt: 0.5, pb: 1 }}>
             {isLoading ? (
-              <Box sx={{ display: "flex", gap: 1.5, px: 2, overflow: "hidden" }}>
+              <Box
+                sx={{ display: "flex", gap: 1.5, px: 2, overflow: "hidden" }}
+              >
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} variant="rounded" width={80} height={64} sx={{ flexShrink: 0 }} />
+                  <Skeleton
+                    key={i}
+                    variant="rounded"
+                    width={80}
+                    height={64}
+                    sx={{ flexShrink: 0 }}
+                  />
                 ))}
               </Box>
             ) : (
